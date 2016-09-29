@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Worldwide Distribution of IP Addresses</title>
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.0/dist/leaflet.css">
+	<script src="https://unpkg.com/leaflet@1.0.0/dist/leaflet.js"></script>
+	<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+	<script src="map.js"></script>
+	<script src="upload.js"></script>
+</head>
+<body>
+
+	<h1>Worldwide Distribution of IP Addresses</h1>
+
+	<div id="map"></div>
+
+
+	<form id="upload">
+		<label>
+			Upload Block File
+			<input type="file" id="file" name="file" accept="text/csv">
+		</label>
+		<p class="upload-info">Upload a <a href="http://dev.maxmind.com/geoip/geoip2/geolite2/">GeoLite2</a> CSV block file from MaxMind.</p>
+	</form>
+
+</body>
+</html>
