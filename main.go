@@ -8,6 +8,7 @@ import (
 	"github.com/coditect/transloc-coding-exercise/config"
 	"github.com/coditect/transloc-coding-exercise/rest"
 	"github.com/coditect/transloc-coding-exercise/sqlite"
+	"github.com/NYTimes/gziphandler"
 )
 
 func main() {
@@ -25,7 +26,7 @@ func main() {
 	}
 
 	server := rest.NewServer(db, c.RootDir)
-	err = http.ListenAndServe(c.Listen, server)
+	err = http.ListenAndServe(c.Listen, gziphandler.GzipHandler(server))
 	if err != nil {
 		fmt.Println("HTTP server error:", err)
 		os.Exit(1)
