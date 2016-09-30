@@ -25,6 +25,29 @@ type LocationStorage interface {
 	Save(LocationTable) error
 }
 
+// RoundLocations reduces the resolution of data in a location table by rounding
+// each latitude to the nearest multiple of y degrees and each longitude to the
+// nearest multiple of x degrees, and combining the quantities assigned to
+// locations that round to the same pair of coordinates.
+func (t LocationTable) RoundLocations(x, y float64) LocationTable {
+	rounded := make(LocationTable)
+
+	for location, quantity := range t {
+		roundedLocation := Location{
+			RoundToNearestMultiple(location.Latitude, y),
+			RoundToNearestMultiple(location.Longitude, x),
+		}
+
+		if previousQuanity, found := rounded[roundedLocation]; found {
+			rounded[roundedLocation] = quantity + previousQuanity
+		} else {
+			rounded[roundedLocation] = quantity
+		}
+	}
+
+	return rounded
+}
+
 // Logarithmic returns a location table in which the quantity assigned to each
 // location is the base
 func (t LocationTable) Logarithmic(base float64) LocationTable {
@@ -87,6 +110,10 @@ func LocationTableFromCSV(r io.Reader) (LocationTable, error) {
 		}
 	}
 
+	// No rounding: 30968 rows
+	// Floor:       ~2000 rows
+	// Floor to nearest 10th of a degree: 17366 rows
+
 	if !networkFound || !latitudeFound || !longitudeFound {
 		return nil, HTTPError{fmt.Errorf("Missing required columns"), 400}
 	}
@@ -125,7 +152,6 @@ func LocationTableFromCSV(r io.Reader) (LocationTable, error) {
 			quantity = math.Pow(2, float64(totalSize - prefixSize - 1))
 		}
 
-
 		if previousQuanity, found := table[location]; found {
 			table[location] = quantity + previousQuanity
 		} else {
@@ -136,7 +162,6 @@ func LocationTableFromCSV(r io.Reader) (LocationTable, error) {
 	return table, nil
 }
 
-
 // NormalizeLongitude normalizes a longitude value to the range [-180, 180).
 func NormalizeLongitude(degrees float64) float64 {
 	degrees = math.Mod(degrees, 360)
@@ -146,4 +171,12 @@ func NormalizeLongitude(degrees float64) float64 {
 		degrees -= 360
 	}
 	return degrees
+}
+
+// RoundToNearestMultiple rounds n to the nearest multiple of m.
+func RoundToNearestMultiple(n, m float64) float64 {
+	if m == 0 {
+		return n
+	}
+	return math.Floor((n + m / 2) / m) * m
 }

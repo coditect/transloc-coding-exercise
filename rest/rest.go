@@ -53,43 +53,38 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) Get(w http.ResponseWriter, r *http.Request) error {
-	var (
-		north, south, east, west float64
-		err error
-	)
-
-	if raw := r.FormValue("north"); raw != "" {
-		north, err = strconv.ParseFloat(raw, 64)
-		if err != nil {
-			return model.HTTPError{err, 400}
-		}
+	north, err := ParseFloatParameter(r, "north", true)
+	if err != nil {
+		return err
 	}
 
-	if raw := r.FormValue("south"); raw != "" {
-		south, err = strconv.ParseFloat(raw, 64)
-		if err != nil {
-			return model.HTTPError{err, 400}
-		}
+	south, err := ParseFloatParameter(r, "south", true)
+	if err != nil {
+		return err
 	}
 
-	if raw := r.FormValue("east"); raw != "" {
-		east, err = strconv.ParseFloat(raw, 64)
-		if err != nil {
-			return model.HTTPError{err, 400}
-		}
+	east, err := ParseFloatParameter(r, "east", true)
+	if err != nil {
+		return err
 	}
 
-	if raw := r.FormValue("west"); raw != "" {
-		west, err = strconv.ParseFloat(raw, 64)
-		if err != nil {
-			return model.HTTPError{err, 400}
-		}
+	west, err := ParseFloatParameter(r, "west", true)
+	if err != nil {
+		return err
 	}
 
+	resolution, err := ParseFloatParameter(r, "resolution", false)
+	if err != nil {
+		return err
+	}
 
 	results, err := s.locations.Query(north, south, east, west)
 	if err != nil {
 		return model.HTTPError{err, 500}
+	}
+
+	if resolution > 0 {
+		results = results.RoundLocations(resolution, resolution)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -125,4 +120,19 @@ func (s *Server) Post(w http.ResponseWriter, r *http.Request) error {
 func (s *Server) MethodNotAllowed(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Content-Type", "text/plain")
 	return model.HTTPError{fmt.Errorf("Method %s is not allowed", r.Method), 405}
+}
+
+func ParseFloatParameter(r *http.Request, name string, required bool) (float64, error) {
+	raw := r.FormValue(name)
+	if raw == "" {
+		if required {
+			return 0, model.HTTPError{fmt.Errorf("Missing required parameter %q", name), 400}
+		}
+		return 0, nil
+	}
+	parsed, err := strconv.ParseFloat(raw, 64)
+	if err != nil {
+		return 0, model.HTTPError{err, 400}
+	}
+	return parsed, nil
 }
