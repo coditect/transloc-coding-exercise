@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"database/sql"
-	"math"
 
 	"github.com/coditect/transloc-coding-exercise/model"
 	_ "github.com/mattn/go-sqlite3"
@@ -28,36 +27,20 @@ func New(file string) (*Database, error) {
 
 func (db *Database) Query(north, south, east, west float64) (model.LocationTable, error) {
 	result := make(model.LocationTable)
-	startAt := west
+	rows, err := db.DB.Query("SELECT latitude, longitude, addresses FROM locations WHERE latitude BETWEEN ? AND ? AND longitude > ? AND longitude <= ?", south, north, west, east)
+	if err != nil {
+		return nil, err
+	}
 
-	for startAt < east {
-		normalWest := model.NormalizeLongitude(startAt)
-		offset := startAt - normalWest
-		degreesToCover := math.Min(360, east - startAt)
-
-		if normalWest + degreesToCover > 180 {
-			degreesToCover = 180 - normalWest
-		}
-
-		normalEast := normalWest + degreesToCover
-
-		rows, err := db.DB.Query("SELECT latitude, longitude, addresses FROM locations WHERE latitude BETWEEN ? AND ? AND longitude > ? AND longitude <= ?", south, north, normalWest, normalEast)
+	for rows.Next() {
+		var latitude, longitude, quantity float64
+		err := rows.Scan(&latitude, &longitude, &quantity)
 		if err != nil {
 			return nil, err
 		}
 
-		for rows.Next() {
-			var latitude, longitude, quantity float64
-			err := rows.Scan(&latitude, &longitude, &quantity)
-			if err != nil {
-				return nil, err
-			}
-
-			location := model.Location{latitude, longitude + offset}
-			result[location] = quantity
-		}
-
-		startAt += degreesToCover
+		location := model.Location{latitude, longitude}
+		result[location] = quantity
 	}
 
 	return result, nil

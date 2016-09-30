@@ -1,6 +1,6 @@
 window.addEventListener("load", function() {
 
-	var map = L.map('map', {minZoom: 2}),
+	var map = L.map('map', {minZoom: 1}),
 		heatmap = null,
 		timeout = null,
 		gradient = {0.0: '#00f', 0.05: '#0ff', 0.1: '#0f0', 0.2: '#ff0', 0.4: '#f00', 0.8: '#f0f'};
@@ -50,7 +50,8 @@ window.addEventListener("load", function() {
 
 	L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
 		attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
-		maxZoom: 16
+		maxZoom: 16,
+		noWrap: true
 	}).addTo(map);
 
 	map.on('zoomstart', updateHeatmap);
