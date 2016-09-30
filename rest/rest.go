@@ -88,7 +88,7 @@ func (s *Server) Get(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	return json.NewEncoder(w).Encode(results.Logarithmic(10))
+	return json.NewEncoder(w).Encode(results)
 }
 
 func (s *Server) Post(w http.ResponseWriter, r *http.Request) error {

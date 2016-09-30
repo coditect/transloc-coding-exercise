@@ -37,7 +37,7 @@ window.addEventListener("load", function() {
 			heatmap = L.heatLayer(data, {
 				radius: radius,
 				blur: radius * 0.75,
-				max: 33,
+				max: 1e+32,
 				gradient: gradient,
 			}).addTo(map);
 
